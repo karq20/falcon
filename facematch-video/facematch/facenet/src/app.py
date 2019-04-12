@@ -5,10 +5,11 @@ import cv2
 import numpy as np
 from flask import Flask, request, render_template
 from flask_restful import Api, Resource
-from models import db
+# from models import db
 from application import Application
-from .visualize import render_detect_results
+from visualize import render_detect_results
 import requests
+import os
 
 sys.path.append("/src/")
 
@@ -16,23 +17,25 @@ app = Flask(__name__)
 api = Api(app)
 facenetapiURL = 'http://127.0.0.1:5001'
 #   facenet.load_model("20170512-110547/20170512-110547.pb")
-app.config['MODEL_PATH'] = '/Users/moneyview/Desktop/Face Detect:Recognition/facematchapi/facenet/src/utils/models/20170512-110547/20170512-110547.pb'
 
-POSTGRES = {
-    'user': 'moneyview',
-    'pw': 'akash1997',
-    'db': 'moneyview',
-    'host': 'localhost',
-    'port': '5432',
-}
+# Load the Google Inception model
+app.config['MODEL_PATH'] = 'utils/models/20170512-110547/20170512-110547.pb'
 
-app.config['DEBUG'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
-%(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
-db.init_app(app)
-with app.app_context():
+# POSTGRES = {
+#     'user': 'mohit',
+#     'pw': 'kira',
+#     'db': 'moneyview',
+#     'host': 'localhost',
+#     'port': '5432',
+# }
 
-    db.create_all()
+# app.config['DEBUG'] = False
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
+# %(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
+# db.init_app(app)
+# with app.app_context():
+#
+#     db.create_all()
 
 application = Application(app.config['MODEL_PATH'])
 
@@ -42,15 +45,42 @@ def index():
 
 @app.route('/compare', methods=['POST'])
 def verify():
-    image_url1 = request.form['imageURL1']
-    image_url2 = request.form['imageURL2']
+    image_url = request.form['imageURL']
+    video_url = request.form['videoURL']
 
-    data = json.dumps({'url1': image_url1, 'url2': image_url2})
-    url = facenetapiURL + '/face/compare'
-    response = requests.post(url, data=data)
-    verify_result = response.json()
+    print(image_url, video_url)
+    total_count = 0
+    false_count = 0
+    threshold = 0.3
+    successimage = None
+    for i in range(10):
+        try:
+            screenshot_url = video_url + str(i) + '.png'
+            open(screenshot_url.replace('file://', ''), 'r')
+            total_count = total_count + 1
+            data = json.dumps({'url1': image_url, 'url2': screenshot_url})
+            url = facenetapiURL + '/face/compare'
+            response = requests.post(url, data=data)
+            verify_result = json.loads(response.json())
+            print(verify_result)
+            if not verify_result['RESULT']:
+                false_count = false_count + 1
+            else:
+                if not successimage:
+                    successimage = screenshot_url
+        except FileNotFoundError:
+            pass
 
-    return render_template('index.html', verify_result=verify_result, image1=image_url1, image2=image_url2)
+    result = {
+        "Result": False,
+        "Total Count": total_count,
+        "False Count": false_count,
+        "Threshold": threshold
+    }
+    if false_count/total_count < threshold:
+        result["Result"] = True
+
+    return render_template('index.html', result=result, image1=image_url, image2=successimage)
 
 @app.route('/detect', methods=['POST'])
 def detect():
@@ -97,8 +127,9 @@ class FaceDetect(Resource):
         detected_faces = application.detect_faces(img)
         return {'detected_faces': detected_faces}
 
+
 api.add_resource(FaceCompare, '/face/compare')
 api.add_resource(FaceDetect, '/face/detect')
 
 if __name__ == "__main__":
-    app.run(port=5001)
+    app.run(port=3000)

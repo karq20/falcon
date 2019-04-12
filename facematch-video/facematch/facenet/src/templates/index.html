@@ -90,25 +90,27 @@
     <div id="compare" class="form">
         <h2>Paste two image URLs to verify if they are the same person</h2>
         <form action="/compare" method="post">
-            <input type="text" name="imageURL1" width="500px"/>
-            <input type="text" name="imageURL2" width="500px"/>
-            <input type="submit" value="compare"/>
+            <div style="display:inline-block">
+                <label>Selfie Url</label>
+                <input type="text" name="imageURL" width="500px">
+            </div>
+            <div style="display:inline-block">
+                <label>Screenshot Path</label>
+                <input type="text" name="videoURL" width="500px" value="file:///Users/mohit/Desktop/hack19/falcon/facematch-video/video-screenshot/videos/">
+            </div>
+            <div style="display:inline-block">
+                <input type="submit" value="compare">
+            </div>
         </form>
-        <div class="results">
+        <div class="results" style="font-size:20px;text-align:center">
             <table class="resultsTable">
-                <tr><h3>{{verify_result}}</h3></tr>
                 <tr>
-                    <td width="50%">
-                        <div>
-                            <img height="400" src="{{ image1 }}" align="right" />
-                        </div>
-                    </td>
-                    <td width="50%">
-                        <div>
-                            <img height="400" src="{{ image2 }}" align="left" />
-                        </div>
-                    </td>
+                    <td>Result : {{result["Result"]}}</td>
                 </tr>
+                <tr><td>Total Count : {{result["Total Count"]}}</td></tr>
+                <tr><td>False Count : {{result["False Count"]}}</td></tr>
+                <tr><td>Threshold : {{result["Threshold"]}}</td></tr>
+
             </table>
         </div>
     </div>
