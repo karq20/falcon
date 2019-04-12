@@ -19,9 +19,10 @@ path = sys.argv[1]
 
 img = Image.open(path)
 img = img.convert('RGBA')
-#img = img.filter(ImageFilter.SHARPEN)
+# img = img.filter(ImageFilter.SHARPEN)
 pix = img.load()
 
+# cropping
 for y in range(img.size[1]):
     for x in range(img.size[0]):
         if pix[x, y][0] < 102 or pix[x, y][1] < 102 or pix[x, y][2] < 102:
@@ -29,32 +30,24 @@ for y in range(img.size[1]):
         else:
             pix[x, y] = (255, 255, 255, 255)
 
-img.save('temp.jpg')
-'''
-w,h=img.size
-e=int(0.2*w)
-f=int(0.65*h)
-e1=int(0.72*w)
-f1=int(0.9*h)
-img.crop((e,f,e1,f1)).save('img3.jpg')
-texttest = pytesseract.image_to_string(Image.open('img3.jpg'))
-print(texttest)
-#'''
-#text = pytesseract.image_to_string(Image.open('temp.jpg'))
-subprocess.call("tesseract "+path+" out ", shell=True)
-subprocess.call("tesseract temp.jpg out1 ", shell=True)
-fi = open('out.txt', 'r')
-text = fi.read()
-fitemp = open('out1.txt', 'r')
-texttemp = fitemp.read()
+img.save('processed.jpg')
 
-text = filter(lambda x: ord(x)<128,text)
-texttemp = filter(lambda x: ord(x)<128,texttemp)
+# Call tesseract for orig image and sharpened image
+subprocess.call("tesseract "+path+" original_text ", shell=True)
+subprocess.call("tesseract processed.jpg processed_text ", shell=True)
+
+original_text_file = open('original_text.txt', 'r')
+original_text = original_text_file.read()
+processed_text_file = open('processed_text.txt', 'r')
+processed_text = processed_text_file.read()
+
+text = filter(lambda x: ord(x)<128,original_text)
+texttemp = filter(lambda x: ord(x)<128,processed_text)
 
 # Initializing data variable
 name = None
 gender = None
-ayear = None
+year = None
 uid = None
 yearline = []
 genline = []
@@ -63,27 +56,7 @@ text1 = []
 text2 = []
 
 # Searching for Year of Birth
-# print("text")
-# print(text)
-
-# lines = text.split('\n')
-
 lines = texttemp
-
-# for line in lines:
-#
-# 	if ([w for w in xx if re.search('(Year|Birth|irth|YoB|YOB:|DOB:|DOB)$', w)]):
-# 		yearline = line
-# 		break
-#
-#
-#
-#
-
-
-
-
-
 
 for wordlist in lines.split('\n'):
     xx = wordlist.split( )
@@ -98,12 +71,12 @@ except:
     pass
 
 try:
-	yearline = re.split('Year|Birth|Birth |Birth :|Birth:|irth|YoB|YOB:|DOB:|DOB', yearline)[1:]
-	yearline = ''.join(str(e) for e in yearline)
-	if yearline:
-		ayear = dparser.parse(yearline, fuzzy=True).year
+    yearline = re.split('Year|Birth|Birth |Birth :|Birth:|irth|YoB|YOB:|DOB:|DOB', yearline)[1:]
+    yearline = ''.join(str(e) for e in yearline)
+    if yearline:
+        year = dparser.parse(yearline, fuzzy=True).year
 except:
-	pass
+    pass
 
 
 
@@ -190,7 +163,6 @@ try:
 	text1 = filter(None, text1)
 	for x in text1:
 		for y in x.split( ):
-			print(x, y, difflib.get_close_matches(y.upper(), newlist))
 			if(difflib.get_close_matches(y.upper(), newlist)):
 				nameline.append(x)
 				break
@@ -219,13 +191,13 @@ except:
 
 
 
-print(name, gender, ayear, uid)
+print(name, gender, year, uid)
 
 # # Making tuples of data
 # data = {}
 # data['Name'] = name
 # data['Gender'] = gender
-# data['Birth year'] = ayear
+# data['Birth year'] = year
 # data['Uid'] = uid
 # '''
 # # Writing data into JSON
