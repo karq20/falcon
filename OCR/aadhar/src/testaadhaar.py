@@ -71,58 +71,15 @@ except:
     pass
 
 try:
-    yearline = re.split('Year|Birth|Birth |Birth :|Birth:|irth|YoB|YOB:|DOB:|DOB', yearline)[1:]
-    yearline = ''.join(str(e) for e in yearline)
-    if yearline:
-        year = dparser.parse(yearline, fuzzy=True).year
+    yearline = re.split('Birth : |Birth:|Birth|Birth |irth|Year|YoB|YOB:|DOB:|DOB : | DOB :|DOB', yearline)[1:]
+    print(yearline[-1])
+    dob = yearline[-1].strip()
+    # yearline = ''.join(str(e) for e in yearline)
+    # if yearline:
+    #     dob = dparser.parse(yearline, fuzzy=True)
 except:
     pass
 
-
-
-
-
-
-
-
-
-
-
-#---------------------TODO FIND OUT WHAT THIS DOES---------------------------------
-'''
-try:
-	p = parser()
-	info = p.info
-
-	def timetoken(token):
-	  try:
-		float(token)
-		return True
-	  except ValueError:
-		pass
-	  return any(f(token) for f in (info.jump,info.weekday,info.month,info.hms,info.ampm,info.pertain,info.utczone,info.tzoffset))
-
-	def timesplit(input_string):
-	  batch = []
-	  for token in _timelex(input_string):
-		if timetoken(token):
-		  if info.jump(token):
-		    continue
-		  batch.append(token)
-		else:
-		  if batch:
-		    yield " ".join(batch)
-		    batch = []
-	  if batch:
-		yield " ".join(batch)
-
-	for item in timesplit(yearline):
-	  print "Found:", item
-	  print "Parsed:", p.parse(item)
-except:
-	pass
-#'''
-#-----------------------------------------------------------
 
 # Searching for Gender
 try:
@@ -147,15 +104,6 @@ with open('namedb1.csv', 'rb') as f:
 	reader = csv.reader(f)
 	newlist = list(reader)    
 newlist = sum(newlist, [])
-#'''
-
-'''
-#-----------Read Database
-with open('namedb.csv', 'rb') as f:
-	reader = csv.reader(f)
-	newlist = list(reader)    
-newlist = sum(newlist, [])
-#'''
 
 
 # Searching for Name and finding closest name in database
@@ -191,18 +139,18 @@ except:
 
 
 
-print(name, gender, year, uid)
+print(name, gender, dob, uid)
 
 # # Making tuples of data
-# data = {}
-# data['Name'] = name
-# data['Gender'] = gender
-# data['Birth year'] = year
-# data['Uid'] = uid
+data = {}
+data['Name'] = name
+data['Gender'] = gender
+data['DOB'] = dob
+data['Uid'] = uid
 # '''
-# # Writing data into JSON
-# with open('../result/'+ os.path.basename(sys.argv[1]).split('.')[0] +'.json', 'w') as fp:
-#     json.dump(data, fp)
+# Writing data into JSON
+with open('../result/'+ os.path.basename(sys.argv[1]).split('.')[0] +'.json', 'w') as fp:
+    json.dump(data, fp)
 # '''
 #
 # # Removing dummy files

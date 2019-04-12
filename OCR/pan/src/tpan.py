@@ -7,7 +7,8 @@ import pytesseract
 import re
 import difflib
 import csv
-import dateutil.parser as dparser
+from copy import copy
+
 try:
     from PIL import Image
 except Exception as ex:
@@ -21,7 +22,7 @@ pix = img.load()
 
 for y in range(img.size[1]):
     for x in range(img.size[0]):
-        if pix[x, y][0] < 102 or pix[x, y][1] < 102 or pix[x, y][2] < 102:
+        if pix[x, y][0] < 100 or pix[x, y][1] < 100 or pix[x, y][2] < 100:
             pix[x, y] = (0, 0, 0, 255)
         else:
             pix[x, y] = (255, 255, 255, 255)
@@ -29,10 +30,12 @@ for y in range(img.size[1]):
 img.save('temp.png')
 
 text = pytesseract.image_to_string(Image.open('temp.png'))
-print("tesseract output-\n" + text)
+# text = pytesseract.image_to_string(img)
+
 text = filter(lambda x: ord(x) < 128, text)
-filterText = "".join(t for t in text if t.isalnum() or t == '\n' or t.isspace() or t == '/')
-print("filtered output-\n" + filterText)
+filterText = text
+# filterText = "".join(t for t in text if t.isalnum() or t == '\n' or t.isspace() or t == '/')
+# print("filtered output-\n" + filterText)
 
 
 # Initializing data variable
@@ -47,7 +50,7 @@ text0 = []
 text1 = []
 text2 = []
 govRE_str = '(GOVERNMENT|OVERNMENT|VERNMENT|DEPARTMENT|EPARTMENT\
-             |PARTMENT|ARTMENT|INDIA|NDIA)$'
+             |PARTMENT|ARTMENT|INDIA|NDIA|INCOME|NCOME|TAX|DEPT|GOVT)$'
 numRE_str = '(Number|umber|Account|ccount|count|Permanent|\
              ermanent|manent)$'
 
@@ -59,19 +62,18 @@ for lin in lines:
     s = s.lstrip()
     text1.append(s)
 
-
-text1 = list(filter(None, text1))
-print(text1)
+textlist = list(filter(None, text1))
 
 lineno = 0
 
-for wordline in text1:
-    xx = wordline.split()
+for text in textlist:
+    xx = text.split()
     if ([w for w in xx if re.search(govRE_str, w)]):
-        lineno = text1.index(wordline)
+        lineno = textlist.index(text)
         break
 
-text0 = text1[lineno+1:]
+textlist = textlist[lineno+1:]
+print(textlist)
 
 
 # -----------Read Database
@@ -81,55 +83,69 @@ with open('namedb.csv', 'r') as f:
 newlist = sum(newlist, [])
 
 # Searching for Name and finding closest name in database
+# try:
+# 	text0 = filter(None, text0)
+# 	for x in text0:
+# 		for y in x.split( ):
+# 			if(difflib.get_close_matches(y.upper(), newlist)):
+# 				nameline.append(x)
+# 				break
+# 	name = ''.join(str(e) for e in nameline)
+# except:
+# 	pass
+
+textlist2 = copy(textlist)
 try:
-    for x in text0:
-        for y in x.split():
-            if(difflib.get_close_matches(y.upper(), newlist)):
-                nameline.append(x)
+    for text in textlist:
+        for y in text.split():
+            match = difflib.get_close_matches(y.upper(), newlist)
+            if(match):
+                nameline.append(match[0])
+                textlist2.remove(text)
                 break
 except Exception as ex:
     pass
 
 try:
     name = nameline[0]
-    fname = nameline[1]
+    print(name)
 except Exception as ex:
     pass
 
 try:
-    dobline = [item for item in text0 if item not in nameline]
-    # print dobline
-    for x in dobline:
-        z = x.split()
-        z = [s1 for s1 in z if len(s1) > 3]
-        for y in z:
-            if dparser.parse(y, fuzzy=True):
-                dob = dparser.parse(y, fuzzy=True).year
-                panline = dobline[dobline.index(x) + 1:]
-                break
+    fathername = textlist2[0]
+    print(fathername)
+    textlist2.remove(fathername)
 except Exception as ex:
     pass
 
-
-print (panline)
 try:
-    for wordline in panline:
-        xx = wordline.split()
-        if ([w for w in xx if re.search(numRE_str, w)]):
-            pan = panline[panline.index(wordline) + 1]
-            break
-    pan = pan.replace(" ", "")
+    dobt = textlist2[0]
+    print(dobt)
+    textlist2.remove(dobt)
+    # print(textlist2)
 except Exception as ex:
     pass
 
-print (pan)
+panno=''
+try:
+    for word in textlist2:
+        word = word.replace(' ', '')
+        if word.isalnum() and len(word) == 10:
+                panno = word
+
+except Exception as ex:
+    pass
+
+print(panno)
 
 # Making tuples of data
 data = {}
-data['Name'] = text1[0]
-data['Father Name'] = text1[1]
-data['Date of Birth'] = text1[2]
-data['PAN'] = text1[-1]
+data['Data'] = textlist
+data['Name'] = name
+data['Father Name'] = fathername
+data['Date of Birth'] = dobt
+data['PAN'] = panno
 
 # Writing data into JSON
 with open('../result/' + os.path.basename(sys.argv[1]).split('.')[0]
@@ -138,7 +154,7 @@ with open('../result/' + os.path.basename(sys.argv[1]).split('.')[0]
 
 
 # Removing dummy files
-os.remove('temp.png')
+# os.remove('temp.png')
 
 
 
@@ -147,13 +163,4 @@ with open('../result/'+os.path.basename(sys.argv[1]).split('.')[0]
           + '.json', 'r') as f:
      ndata = json.load(f)
 
-print ("+++++++++++++++++++++++++++++++")
-print(ndata['Name'])
-print ("-------------------------------")
-print(ndata['Father Name'])
-print ("-------------------------------")
-print(ndata['Date of Birth'])
-print ("-------------------------------")
-print(ndata['PAN'])
-print ("-------------------------------")
 
