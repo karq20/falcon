@@ -17,4 +17,4 @@ def video_to_frames(video, path_output_dir):
     cv2.destroyAllWindows()
     vidcap.release()
 
-video_to_frames('/Users/mohit/Desktop/mohit.mp4', '/Users/mohit/Desktop/')
+video_to_frames('../videos/mohit.mov', '../videos/')
