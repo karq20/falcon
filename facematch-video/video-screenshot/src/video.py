@@ -1,14 +1,20 @@
 import cv2
-def screenshot():
+import os
 
-    vidcap = cv2.VideoCapture('/Users/moneyview/Downloads/facematch/videos/jurrasic_park_intro.mp4')
-    success, image = vidcap.read()
+def video_to_frames(video, path_output_dir):
+    # extract frames from a video and save to directory as 'x.png' where
+    # x is the frame index
+    vidcap = cv2.VideoCapture(video)
     count = 0
-    while success:
-        vidcap.set(cv2.CAP_PROP_POS_MSEC,(count*5000))
-    cv2.imwrite("frame%d.jpg" % count, image)     # save frame as JPEG file
-    success,image = vidcap.read()
-    print('Read a new frame: ', success)
-    count += 1
-
+    while vidcap.isOpened():
+        success, image = vidcap.read()
+        if success:
+            cv2.imwrite(os.path.join(path_output_dir, '%d.png') % count, image)
+            vidcap.set(cv2.CAP_PROP_POS_MSEC, (count * 3000))
+            count += 1
+        else:
+            break
     cv2.destroyAllWindows()
+    vidcap.release()
+
+video_to_frames('/Users/mohit/Desktop/mohit.mp4', '/Users/mohit/Desktop/')
