@@ -7,7 +7,7 @@ from flask import Flask, request, render_template
 from flask_restful import Api, Resource
 from models import db
 from application import Application
-from .visualize import render_detect_results
+# from .visualize import render_detect_results
 import requests
 
 sys.path.append("/src/")
