@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import os
 import os.path
 import json
 import sys
@@ -10,14 +9,12 @@ import difflib
 import csv
 import nltk
 import subprocess
-import dateutil.parser as dparser
-from dateutil.parser import _timelex, parser
 from PIL import Image, ImageEnhance, ImageFilter
-path = sys.argv[1]
+
+frontpath = sys.argv[1]
 # path = "/Users/mohit/Downloads/aadhar.jpg"
 
-
-img = Image.open(path)
+img = Image.open(frontpath)
 img = img.convert('RGBA')
 # img = img.filter(ImageFilter.SHARPEN)
 pix = img.load()
@@ -33,7 +30,11 @@ for y in range(img.size[1]):
 img.save('processed.jpg')
 
 # Call tesseract for orig image and sharpened image
-subprocess.call("tesseract "+path+" original_text ", shell=True)
+# original_text = pytesseract.image_to_string(img)
+# processed_text = pytesseract.image_to_string(Image.open('processed.jpg'))
+
+
+subprocess.call("tesseract "+frontpath+" original_text ", shell=True)
 subprocess.call("tesseract processed.jpg processed_text ", shell=True)
 
 original_text_file = open('original_text.txt', 'r')
@@ -41,8 +42,8 @@ original_text = original_text_file.read()
 processed_text_file = open('processed_text.txt', 'r')
 processed_text = processed_text_file.read()
 
-text = filter(lambda x: ord(x)<128,original_text)
-texttemp = filter(lambda x: ord(x)<128,processed_text)
+original_text = filter(lambda x: ord(x)<128,original_text)
+processed_text = filter(lambda x: ord(x)<128,processed_text)
 
 # Initializing data variable
 name = None
@@ -56,7 +57,7 @@ text1 = []
 text2 = []
 
 # Searching for Year of Birth
-lines = texttemp
+lines = processed_text
 
 for wordlist in lines.split('\n'):
     xx = wordlist.split( )
@@ -66,13 +67,12 @@ for wordlist in lines.split('\n'):
     else:
         text1.append(wordlist)
 try:
-    text2 = text.split(yearline,1)[1]
+    text2 = processed_text.split(yearline,1)[1]
 except:
     pass
 
 try:
     yearline = re.split('Birth : |Birth:|Birth|Birth |irth|Year|YoB|YOB:|DOB:|DOB : | DOB :|DOB', yearline)[1:]
-    print(yearline[-1])
     dob = yearline[-1].strip()
     # yearline = ''.join(str(e) for e in yearline)
     # if yearline:
@@ -90,17 +90,17 @@ try:
 			break
 
 	if 'Female' in genline:
-	    gender = "Female"
+		gender = "Female"
 	if 'Male' in genline:
-	    gender = "Male"
+		gender = "Male"
 
-	text2 = texttemp.split(genline,1)[1]
+	text2 = processed_text.split(genline,1)[1]
 
 except:
 	pass
 
-#-----------Read Database
-with open('namedb1.csv', 'rb') as f:
+# Read Database
+with open('namedb.csv', 'rb') as f:
 	reader = csv.reader(f)
 	newlist = list(reader)    
 newlist = sum(newlist, [])
@@ -119,9 +119,7 @@ except:
 	pass
 
 
-# Searching for UID
-
-# print(newlist)
+# Searching for Aadhar No
 
 try:
 	newlist = []
@@ -138,36 +136,80 @@ except:
 	pass
 
 
-
-print(name, gender, dob, uid)
-
-# # Making tuples of data
+# Making tuples of data
 data = {}
 data['Name'] = name
 data['Gender'] = gender
 data['DOB'] = dob
-data['Uid'] = uid
-# '''
+data['Aadhar'] = uid
+
+# print(data)
+#
+# # Writing data into JSON
+# with open('../result/'+ os.path.basename(sys.argv[1]).split('.')[0] +'.json', 'w') as fp:
+#     json.dump(data, fp)
+
+
+
+
+############################## BACK ##################################
+pincode = None
+
+backpath = ''
+if len(sys.argv) > 2:
+	backpath = sys.argv[2]
+
+	img = Image.open(backpath)
+	img = img.convert('RGBA')
+	# img = img.filter(ImageFilter.SHARPEN)
+	pix = img.load()
+
+# cropping
+	for y in range(img.size[1]):
+		for x in range(img.size[0]):
+			if pix[x, y][0] < 102 or pix[x, y][1] < 102 or pix[x, y][2] < 102:
+				pix[x, y] = (0, 0, 0, 255)
+			else:
+				pix[x, y] = (255, 255, 255, 255)
+
+	img.save('processed_back.jpg')
+
+	subprocess.call("tesseract "+backpath+" original_text_back ", shell=True)
+	subprocess.call("tesseract processed_back.jpg processed_text_back ", shell=True)
+
+	original_text_file = open('original_text_back.txt', 'r')
+	original_text = original_text_file.read()
+	processed_text_file = open('processed_text_back.txt', 'r')
+	processed_text = processed_text_file.read()
+
+	original_text = filter(lambda x: ord(x)<128,original_text)
+	processed_text = filter(lambda x: ord(x)<128,processed_text)
+
+	lines = processed_text
+
+	found = False
+	count = 0
+	for wordlist in lines.split('\n'):
+		count = count+1
+		if count < 3:
+			pass
+		for word in wordlist.split():
+			if len(word) == 6 and word.isdigit():
+				pincode = word
+				found = True
+				break
+		if found:
+			break
+
+data['Pincode'] = pincode
+
+print('------------------------------------------------------------------------------------------------------------')
+print(data)
+print('------------------------------------------------------------------------------------------------------------')
+
+
 # Writing data into JSON
-with open('../result/'+ os.path.basename(sys.argv[1]).split('.')[0] +'.json', 'w') as fp:
-    json.dump(data, fp)
-# '''
-#
-# # Removing dummy files
-# os.remove('temp.jpg')
-#
-# '''
-# # Reading data back JSON
-# with open('../result/'+ os.path.basename(sys.argv[1]).split('.')[0] +'.json', 'r') as f:
-#      ndata = json.load(f)
-# #'''
-# print("+++++++++++++++++++++++++++++++")
-# print(data['Name'])
-# print("-------------------------------")
-# print(data['Gender'])
-# print("-------------------------------")
-# print(data['Birth year'])
-# print("-------------------------------")
-# print(data['Uid'])
-# print("-------------------------------")
-# #'''
+with open('../result/' + os.path.basename(sys.argv[1]).split('.')[0] + '.json', 'w') as fp:
+	json.dump(data, fp)
+
+

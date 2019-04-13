@@ -73,7 +73,6 @@ for text in textlist:
         break
 
 textlist = textlist[lineno+1:]
-print(textlist)
 
 
 # -----------Read Database
@@ -108,20 +107,17 @@ except Exception as ex:
 
 try:
     name = nameline[0]
-    print(name)
 except Exception as ex:
     pass
 
 try:
     fathername = textlist2[0]
-    print(fathername)
     textlist2.remove(fathername)
 except Exception as ex:
     pass
 
 try:
     dobt = textlist2[0]
-    print(dobt)
     textlist2.remove(dobt)
     # print(textlist2)
 except Exception as ex:
@@ -133,19 +129,20 @@ try:
         word = word.replace(' ', '')
         if word.isalnum() and len(word) == 10:
                 panno = word
-
 except Exception as ex:
     pass
 
-print(panno)
 
 # Making tuples of data
 data = {}
-data['Data'] = textlist
 data['Name'] = name
-data['Father Name'] = fathername
-data['Date of Birth'] = dobt
-data['PAN'] = panno
+data['Father Name'] = str(fathername)
+data['Date of Birth'] = str(dobt)
+data['PAN'] = str(panno)
+
+print('------------------------------------------------------------------------------------------------------------')
+print(data)
+print('------------------------------------------------------------------------------------------------------------')
 
 # Writing data into JSON
 with open('../result/' + os.path.basename(sys.argv[1]).split('.')[0]
