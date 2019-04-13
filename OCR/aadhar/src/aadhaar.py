@@ -2,7 +2,6 @@
 import os.path
 import json
 import sys
-import string
 import pytesseract
 import re
 import difflib
@@ -19,7 +18,7 @@ img = img.convert('RGBA')
 # img = img.filter(ImageFilter.SHARPEN)
 pix = img.load()
 
-# cropping
+# Cropping
 for y in range(img.size[1]):
     for x in range(img.size[0]):
         if pix[x, y][0] < 102 or pix[x, y][1] < 102 or pix[x, y][2] < 102:
@@ -30,9 +29,9 @@ for y in range(img.size[1]):
 img.save('processed.jpg')
 
 # Call tesseract for orig image and sharpened image
+
 # original_text = pytesseract.image_to_string(img)
 # processed_text = pytesseract.image_to_string(Image.open('processed.jpg'))
-
 
 subprocess.call("tesseract "+frontpath+" original_text ", shell=True)
 subprocess.call("tesseract processed.jpg processed_text ", shell=True)
@@ -42,8 +41,8 @@ original_text = original_text_file.read()
 processed_text_file = open('processed_text.txt', 'r')
 processed_text = processed_text_file.read()
 
-original_text = filter(lambda x: ord(x)<128,original_text)
-processed_text = filter(lambda x: ord(x)<128,processed_text)
+original_text = filter(lambda x: ord(x) < 128, original_text)
+processed_text = filter(lambda x: ord(x) < 128, processed_text)
 
 # Initializing data variable
 name = None
@@ -136,20 +135,18 @@ except:
 	pass
 
 
+# Removing dummy files
+os.remove('processed.jpg')
+os.remove('original_text.txt')
+os.remove('processed_text.txt')
+
+
 # Making tuples of data
 data = {}
 data['Name'] = name
 data['Gender'] = gender
 data['DOB'] = dob
 data['Aadhar'] = uid
-
-# print(data)
-#
-# # Writing data into JSON
-# with open('../result/'+ os.path.basename(sys.argv[1]).split('.')[0] +'.json', 'w') as fp:
-#     json.dump(data, fp)
-
-
 
 
 ############################## BACK ##################################
@@ -182,8 +179,8 @@ if len(sys.argv) > 2:
 	processed_text_file = open('processed_text_back.txt', 'r')
 	processed_text = processed_text_file.read()
 
-	original_text = filter(lambda x: ord(x)<128,original_text)
-	processed_text = filter(lambda x: ord(x)<128,processed_text)
+	original_text = filter(lambda x: ord(x) < 128, original_text)
+	processed_text = filter(lambda x: ord(x) < 128, processed_text)
 
 	lines = processed_text
 
@@ -201,9 +198,14 @@ if len(sys.argv) > 2:
 		if found:
 			break
 
+	# Removing dummy files
+	os.remove('processed_back.jpg')
+	os.remove('original_text_back.txt')
+	os.remove('processed_text_back.txt')
+
 data['Pincode'] = pincode
 
-print('------------------------------------------------------------------------------------------------------------')
+print('------------------------------------- PARSED AADHAR OUTPUT -------------------------------------------------')
 print(data)
 print('------------------------------------------------------------------------------------------------------------')
 
@@ -211,5 +213,6 @@ print('-------------------------------------------------------------------------
 # Writing data into JSON
 with open('../result/' + os.path.basename(sys.argv[1]).split('.')[0] + '.json', 'w') as fp:
 	json.dump(data, fp)
+
 
 

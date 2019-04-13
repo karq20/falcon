@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import os
 import os.path
 import json
 import sys
@@ -35,7 +34,6 @@ text = pytesseract.image_to_string(Image.open('temp.png'))
 text = filter(lambda x: ord(x) < 128, text)
 filterText = text
 # filterText = "".join(t for t in text if t.isalnum() or t == '\n' or t.isspace() or t == '/')
-# print("filtered output-\n" + filterText)
 
 
 # Initializing data variable
@@ -75,23 +73,11 @@ for text in textlist:
 textlist = textlist[lineno+1:]
 
 
-# -----------Read Database
+# Read Database
 with open('namedb.csv', 'r') as f:
     reader = csv.reader(f)
     newlist = list(reader)
 newlist = sum(newlist, [])
-
-# Searching for Name and finding closest name in database
-# try:
-# 	text0 = filter(None, text0)
-# 	for x in text0:
-# 		for y in x.split( ):
-# 			if(difflib.get_close_matches(y.upper(), newlist)):
-# 				nameline.append(x)
-# 				break
-# 	name = ''.join(str(e) for e in nameline)
-# except:
-# 	pass
 
 textlist2 = copy(textlist)
 try:
@@ -119,7 +105,6 @@ except Exception as ex:
 try:
     dobt = textlist2[0]
     textlist2.remove(dobt)
-    # print(textlist2)
 except Exception as ex:
     pass
 
@@ -140,7 +125,7 @@ data['Father Name'] = str(fathername)
 data['Date of Birth'] = str(dobt)
 data['PAN'] = str(panno)
 
-print('------------------------------------------------------------------------------------------------------------')
+print('------------------------------------- PARSED PAN OUTPUT ----------------------------------------------------')
 print(data)
 print('------------------------------------------------------------------------------------------------------------')
 
@@ -151,8 +136,7 @@ with open('../result/' + os.path.basename(sys.argv[1]).split('.')[0]
 
 
 # Removing dummy files
-# os.remove('temp.png')
-
+os.remove('temp.png')
 
 
 # Reading data back JSON(give correct path where JSON is stored)
