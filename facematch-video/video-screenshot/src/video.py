@@ -4,7 +4,7 @@ import os
 def video_to_frames(video, path_output_dir):
     # extract frames from a video and save to directory as 'x.png' where
     # x is the frame index
-    interval = 3000
+    interval = 9000
     vidcap = cv2.VideoCapture(video)
     count = 0
     while vidcap.isOpened():

@@ -34,8 +34,10 @@ img.save('processed.jpg')
 # processed_text = pytesseract.image_to_string(Image.open('processed.jpg'))
 
 subprocess.call("tesseract "+frontpath+" original_text ", shell=True)
-subprocess.call("tesseract processed.jpg processed_text ", shell=True)
-
+# subprocess.call("tesseract processed.jpg processed_text ", shell=True)
+subprocess.call("tesseract processed.jpg processed_text  -l eng hin tsv", shell=True)
+# subprocess.call("tesseract processed.jpg processed_text_hin  -l hin csv", shell=True)
+#
 original_text_file = open('original_text.txt', 'r')
 original_text = original_text_file.read()
 processed_text_file = open('processed_text.txt', 'r')
@@ -101,7 +103,7 @@ except:
 # Read Database
 with open('namedb.csv', 'rb') as f:
 	reader = csv.reader(f)
-	newlist = list(reader)    
+	newlist = list(reader)
 newlist = sum(newlist, [])
 
 
@@ -136,9 +138,9 @@ except:
 
 
 # Removing dummy files
-os.remove('processed.jpg')
-os.remove('original_text.txt')
-os.remove('processed_text.txt')
+# os.remove('processed.jpg')
+# os.remove('original_text.txt')
+# os.remove('processed_text.txt')
 
 
 # Making tuples of data
@@ -172,7 +174,10 @@ if len(sys.argv) > 2:
 	img.save('processed_back.jpg')
 
 	subprocess.call("tesseract "+backpath+" original_text_back ", shell=True)
-	subprocess.call("tesseract processed_back.jpg processed_text_back ", shell=True)
+	# subprocess.call("tesseract processed_back.jpg processed_text_back ", shell=True)
+	subprocess.call("tesseract processed_back.jpg processed_text_back  -l eng hin tsv ", shell=True)
+	# subprocess.call("tesseract processed_back.jpg processed_text_back_hin  -l hin csv ", shell=True)
+
 
 	original_text_file = open('original_text_back.txt', 'r')
 	original_text = original_text_file.read()
@@ -199,9 +204,9 @@ if len(sys.argv) > 2:
 			break
 
 	# Removing dummy files
-	os.remove('processed_back.jpg')
-	os.remove('original_text_back.txt')
-	os.remove('processed_text_back.txt')
+	# os.remove('processed_back.jpg')
+	# os.remove('original_text_back.txt')
+	# os.remove('processed_text_back.txt')
 
 data['Pincode'] = pincode
 

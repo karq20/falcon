@@ -21,27 +21,12 @@ facenetapiURL = 'http://127.0.0.1:5001'
 # Load the Google Inception model
 app.config['MODEL_PATH'] = 'utils/models/20170512-110547/20170512-110547.pb'
 
-# POSTGRES = {
-#     'user': 'mohit',
-#     'pw': 'kira',
-#     'db': 'moneyview',
-#     'host': 'localhost',
-#     'port': '5432',
-# }
-
-# app.config['DEBUG'] = False
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
-# %(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
-# db.init_app(app)
-# with app.app_context():
-#
-#     db.create_all()
-
 application = Application(app.config['MODEL_PATH'])
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    result = {}
+    return render_template('index.html', result=result)
 
 @app.route('/compare', methods=['POST'])
 def verify():
@@ -72,13 +57,14 @@ def verify():
             pass
 
     result = {
-        "Result": False,
-        "Total Count": total_count,
-        "False Count": false_count,
-        "Threshold": threshold
+        "Match": False,
+        "Total Screenshots": total_count,
+        "Matched Screenshots": total_count - false_count
+        # "Success Threshold": 100 - (threshold*100)
     }
+    print(false_count, total_count, threshold)
     if false_count/total_count < threshold:
-        result["Result"] = True
+        result["Match"] = True
 
     return render_template('index.html', result=result, image1=image_url, image2=successimage)
 
@@ -132,4 +118,4 @@ api.add_resource(FaceCompare, '/face/compare')
 api.add_resource(FaceDetect, '/face/detect')
 
 if __name__ == "__main__":
-    app.run(port=3000)
+    app.run(port=5001)

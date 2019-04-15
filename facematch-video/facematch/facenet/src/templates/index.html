@@ -17,9 +17,8 @@
         font-size:48px;
         margin-top:0;
         font-family:Arial, sans-serif;
-        letter-spacing:4px;
         text-decoration:none;
-        color:#BBB;
+        color:#4885ed;
       }
 
       h2
@@ -32,7 +31,6 @@
       #banner
       {
         width:auto;
-        height:40px;
         text-align:center;
         background-repeat:no-repeat;
         border-radius:5px;
@@ -40,18 +38,9 @@
         padding:30px 0;
       }
 
-      .lead
-      {
-        background-color:rgba(255,255,255,0.6);
-        border-radius:3px;
-        box-shadow:rgba(0,0,0,0.2) 0 1px 3px;
-        font-family:Sintony, sans-serif;
-      }
-
       .form
       {
         width:auto;
-        margin:30px auto auto;
         text-align:center;
       }
 
@@ -74,8 +63,8 @@
 
   <body>
     <div id="banner">
-      <!--<h1>facenet API demo</h1>-->
-      <p class="lead"></p>
+      <h1>Falcon Face Match</h1>
+      <h2>Upload image and video to compare</h2>
     </div>
    <!-- <div id="detectform" class="form">
         <h2>Paste an image URL to detect faces</h2>
@@ -86,16 +75,17 @@
         <div class="results">
             <img src="data:image/jpeg;base64,{{ image }}" />
         </div> -->
-    </div>
+<!--    </div>-->
     <div id="compare" class="form">
-        <h2>Paste two image URLs to verify if they are the same person</h2>
+
+
         <form action="/compare" method="post">
             <div style="display:inline-block">
-                <label>Selfie Url</label>
+                <label>Image Url</label>
                 <input type="text" name="imageURL" width="500px">
             </div>
             <div style="display:inline-block">
-                <label>Screenshot Path</label>
+                <label>Video Url</label>
                 <input type="text" name="videoURL" width="500px" value="file:///Users/mohit/Desktop/hack19/falcon/facematch-video/video-screenshot/videos/">
             </div>
             <div style="display:inline-block">
@@ -104,12 +94,13 @@
         </form>
         <div class="results" style="font-size:20px;text-align:center">
             <table class="resultsTable">
-                <tr>
-                    <td>Result : {{result["Result"]}}</td>
+
+                 <tr>
+                     <td><h3>Match : {{result["Match"]}}</h3></td>
                 </tr>
-                <tr><td>Total Count : {{result["Total Count"]}}</td></tr>
-                <tr><td>False Count : {{result["False Count"]}}</td></tr>
-                <tr><td>Threshold : {{result["Threshold"]}}</td></tr>
+                <tr><td>Total Screenshots : {{result["Total Screenshots"]}}</td></tr>
+                <tr><td>Matched Screenshots : {{result["Matched Screenshots"]}}</td></tr>
+<!--                <tr><td>Success Threshold : {{result["Success Threshold"]}}</td></tr>-->
 
             </table>
         </div>
