@@ -18,13 +18,15 @@ def get(image, rgb, confidence_threshold):
 
 	# Variable Constants
 	processed_image = '/tmp/frontpath_processed.jpg'
+	processed_tsv = '/tmp/proctext'
+
 	processor.preprocess(image, rgb, processed_image)
 
 	# Call tesseract for orig image and sharpened image
 	# original_text = pytesseract.image_to_string(img)
 	# processed_text = pytesseract.image_to_string(Image.open('processed.jpg'))
 	# subprocess.call("tesseract " + frontpath + " text -l eng tsv", shell=True)
-	subprocess.call("tesseract " + processed_image + " proctext -l eng tsv", shell=True)
+	subprocess.call("tesseract " + processed_image + " " + processed_tsv + " -l eng tsv", shell=True)
 	# original_text_file = open('text.tsv', 'r')
 	# original_text = original_text_file.read()
 	# processed_text_file = open('proctext.tsv', 'r')
@@ -32,10 +34,8 @@ def get(image, rgb, confidence_threshold):
 	# original_text = filter(lambda x: ord(x) < 128, original_text)
 	# processed_text = filter(lambda x: ord(x) < 128, processed_text)
 
-	print("------ Processed Text -----")
+	parsed_word_list = processor.parse_tsv_with_nonzero_confidence(processed_tsv+'.tsv', confidence_threshold)
 
-	parsed_word_list = processor.parse_tsv_with_nonzero_confidence('proctext.tsv', confidence_threshold)
-	# print(parsed_word_list)
 	""" Need List of objects sorted in order of block, line, word """
 
 	block_map = {}
@@ -56,7 +56,6 @@ def get(image, rgb, confidence_threshold):
 		par = entry["par_num"]
 		line = entry["line_num"]
 		word = entry["word_num"]
-		print(text)
 		if block == previous_entry["block_num"] and par == previous_entry["par_num"] and line == previous_entry["line_num"]:
 			mylist[j].append(text)
 		else:
@@ -64,8 +63,8 @@ def get(image, rgb, confidence_threshold):
 			mylist[j] = [text]
 
 	os.remove(processed_image)
+	os.remove(processed_tsv+'.tsv')
 
-	print(mylist)
 	return mylist
 
 # TRY WITH 2 OR 3 DIFFERENT LIGHTING CONDITIONS (80, 100, 120)

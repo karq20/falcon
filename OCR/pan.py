@@ -6,36 +6,14 @@ import pytesseract
 import re
 import difflib
 import csv
+import text_with_confidence
 from copy import copy
+from PIL import Image
 
-try:
-    from PIL import Image
-except Exception as ex:
-    print ("please install PIL")
-    sys.exit()
-path = sys.argv[1]
+s = text_with_confidence.get(sys.argv[1], 90, 30)
+print(s)
 
-img = Image.open(path)
-img = img.convert('RGBA')
-pix = img.load()
-
-for y in range(img.size[1]):
-    for x in range(img.size[0]):
-        if pix[x, y][0] < 100 or pix[x, y][1] < 100 or pix[x, y][2] < 100:
-            pix[x, y] = (0, 0, 0, 255)
-        else:
-            pix[x, y] = (255, 255, 255, 255)
-
-img.save('temp.png')
-
-text = pytesseract.image_to_string(Image.open('temp.png'))
-# text = pytesseract.image_to_string(img)
-
-text = filter(lambda x: ord(x) < 128, text)
-filterText = text
-# filterText = "".join(t for t in text if t.isalnum() or t == '\n' or t.isspace() or t == '/')
-
-
+"""
 # Initializing data variable
 name = None
 fname = None
@@ -144,4 +122,4 @@ with open('../result/'+os.path.basename(sys.argv[1]).split('.')[0]
           + '.json', 'r') as f:
      ndata = json.load(f)
 
-
+"""

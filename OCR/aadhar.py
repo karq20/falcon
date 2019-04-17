@@ -8,73 +8,13 @@ import difflib
 import csv
 import nltk
 import subprocess
-import processor
+import text_with_confidence
 from operator import itemgetter
 from PIL import Image, ImageEnhance, ImageFilter
 
 
-def preprocess(imgpath, tR, tG, tB, processed_img):
-	img = Image.open(imgpath)
-	img = img.convert('RGBA')
-	# img = img.filter(ImageFilter.SHARPEN)
-	pix = img.load()
-
-	# Convert to black and white
-	for y in range(img.size[1]):
-		for x in range(img.size[0]):
-			if pix[x, y][0] < tR or pix[x, y][1] < tG or pix[x, y][2] < tB:
-				pix[x, y] = (0, 0, 0, 255)
-			else:
-				pix[x, y] = (255, 255, 255, 255)
-
-	img.save(processed_img)
-
-
-frontpath = sys.argv[1]
-frontpath_processed = 'frontpath_processed.jpg'
-rgb = 90
-preprocess(frontpath, rgb, rgb, rgb, frontpath_processed)
-
-# Call tesseract for orig image and sharpened image
-# original_text = pytesseract.image_to_string(img)
-# processed_text = pytesseract.image_to_string(Image.open('processed.jpg'))
-
-# subprocess.call("tesseract " + frontpath + " text -l eng tsv", shell=True)
-subprocess.call("tesseract " + frontpath_processed + " proctext -l eng tsv", shell=True)
-
-# original_text_file = open('text.tsv', 'r')
-# original_text = original_text_file.read()
-processed_text_file = open('proctext.tsv', 'r')
-processed_text = processed_text_file.read()
-
-# original_text = filter(lambda x: ord(x) < 128, original_text)
-processed_text = filter(lambda x: ord(x) < 128, processed_text)
-
-print("------ Processed Text -----")
-
-parsed_word_list = processor.parse_tsv_with_confidence('proctext.tsv', 60)
-
-"""
-Need List of objects sorted in order of block, line, word
-"""
-
-block_map = {}
-
-parsed_word_list = sorted(parsed_word_list, key=itemgetter('block_num', 'line_num', 'word_num'))
-
-
-# print(parsed_word_list)
-for entry in parsed_word_list:
-	text = entry["text"]
-	conf = entry["conf"]
-	block = entry["block_num"]
-	par = entry["par_num"]
-	line = entry["line_num"]
-	word = entry["word_num"]
-	print(text, conf, block, par, line, word)
-
-
-
+s = text_with_confidence.get(sys.argv[1], 120, 30)
+print(s)
 
 
 """
