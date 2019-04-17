@@ -48,6 +48,7 @@ def get(image, rgb, confidence_threshold):
 	for i in range(1, len(parsed_word_list)):
 		if i == len(parsed_word_list):
 			break
+
 		entry = parsed_word_list[i]
 		previous_entry = parsed_word_list[i-1]
 		text = filter(lambda x: ord(x) > 31 and ord(x) < 128, entry["text"])
@@ -56,7 +57,10 @@ def get(image, rgb, confidence_threshold):
 		par = entry["par_num"]
 		line = entry["line_num"]
 		word = entry["word_num"]
-		if block == previous_entry["block_num"] and par == previous_entry["par_num"] and line == previous_entry["line_num"]:
+		if len(text.strip()) == 0:
+			continue
+
+		if block == previous_entry["block_num"]	and par == previous_entry["par_num"] and line == previous_entry["line_num"]:
 			mylist[j].append(text)
 		else:
 			j = j + 1
