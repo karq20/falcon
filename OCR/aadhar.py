@@ -7,18 +7,27 @@ import re
 import difflib
 import csv
 import nltk
+import time
 import subprocess
 import text_with_confidence
 from operator import itemgetter
 from PIL import Image, ImageEnhance, ImageFilter
+import fast
 
 
-s = text_with_confidence.get(sys.argv[1], 120, 30)
-print(s)
+# Run text_with_confidence X times with rgb = rgb + y and Y times with confidence c = c + d
+
+def run():
+	# 9 sec with multithreading
+	image_list = ['./test/data/aadhar/aadhar.jpg', './test/data/aadhar/aadharback.jpg', './test/data/aadhar/soham.jpeg', './test/data/aadhar/sohamback2.jpeg']
+	no_of_proc = 4
+	lines = fast.process(image_list, 90, 40, no_of_proc)
+	return lines
+
+print(run())
 
 
 """
-
 # Initializing data variable
 name = None
 gender = None

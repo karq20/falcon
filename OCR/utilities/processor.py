@@ -30,7 +30,7 @@ def parse_tsv_with_nonzero_confidence(file, confidence):
             if first_list:
                 first_list = False
                 continue
-            if int(row[10]) > 0 and int(row[10]) >= confidence and len(row[11].strip()) > 0:
+            if len(row) >= 11 and int(row[10]) > 0 and int(row[10]) >= confidence and len(row[11].strip()) > 0:
                 entry = {
                     # "level": row[0],
                     # "page_num": row[1],

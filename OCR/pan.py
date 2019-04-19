@@ -9,9 +9,20 @@ import csv
 import text_with_confidence
 from copy import copy
 from PIL import Image
+import fast
 
-s = text_with_confidence.get(sys.argv[1], 90, 30)
-print(s)
+
+# Run text_with_confidence X times with rgb = rgb + y and Y times with confidence c = c + d
+
+def get():
+
+    # 9 sec with multithreading
+    image_list = ['./test/data/pan/mohitpan.jpg', './test/data/pan/lokeshpan.jpg', './test/data/pan/randompancard.jpg', './test/data/pan/randompancard2.jpg']
+    no_of_proc = 4
+    lines = fast.process(image_list, 90, 40, no_of_proc)
+    return lines
+
+print(get())
 
 """
 # Initializing data variable
