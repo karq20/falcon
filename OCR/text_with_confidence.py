@@ -16,9 +16,15 @@ import uuid
 
 
 def do(image, rgb, conf):
-	word_list = extract_words(image, rgb, conf)
-	lines = get_lines(word_list)
-	return lines
+	try:
+		word_list = extract_words(image, rgb, conf)
+	except:
+		print("Exception getting word list", rgb, conf)
+	try:
+		lines = get_lines(word_list)
+		return lines
+	except:
+		print("Exception getting lines", rgb, conf)
 
 
 # Returns sorted list of extracted words
@@ -33,6 +39,7 @@ def extract_words(image, rgb, confidence):
 	parsed_word_list = get_word_list(processed_image, processed_tsv, confidence)
 	os.remove(processed_tsv + '.tsv')
 	os.remove(processed_image)
+
 	# Need List of objects sorted in order of block, line, word
 	parsed_word_list = sorted(parsed_word_list, key=itemgetter('block_num', 'par_num', 'line_num', 'word_num'))
 	return parsed_word_list
@@ -47,8 +54,10 @@ def get_word_list(processed_image, processed_tsv, confidence):
 
 
 def get_lines(word_list):
-	block_map = {}
 	mylist = {}
+	if len(word_list) == 0:
+		return {}
+
 	mylist[0] = [word_list[0]["text"]]
 	j = 0
 	for i in range(1, len(word_list)):
@@ -57,7 +66,6 @@ def get_lines(word_list):
 		entry = word_list[i]
 		previous_entry = word_list[i-1]
 		text = filter(lambda x: ord(x) > 31 and ord(x) < 128, entry["text"])
-		conf = entry["conf"]
 		if len(text.strip()) == 0:
 			continue
 		if entry["block_num"] == previous_entry["block_num"] and entry["par_num"] == previous_entry["par_num"] and entry["line_num"] == previous_entry["line_num"]:
@@ -68,10 +76,5 @@ def get_lines(word_list):
 	return mylist
 
 
-# TRY WITH 2 OR 3 DIFFERENT LIGHTING CONDITIONS (80, 100, 120)
+# TRY WITH 2 OR 3 DIFFERENT LIGHTING CONDITIONS RGB (80, 100, 120)
 # get(sys.argv[1], 70, 30)
-# get(sys.argv[1], 80, 30)
-# get(sys.argv[1], 90, 30)
-# get(sys.argv[1], 100, 30)
-# get(sys.argv[1], 110, 30)
-# get(sys.argv[1], 120, 30)

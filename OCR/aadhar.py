@@ -14,75 +14,97 @@ from operator import itemgetter
 from PIL import Image, ImageEnhance, ImageFilter
 import fast
 
+import imageio
+import numpy as np
+
 
 # Run text_with_confidence X times with rgb = rgb + y and Y times with confidence c = c + d
 
-def run():
-	# 9 sec with multithreading
-	image_list = ['./test/data/aadhar/aadhar.jpg', './test/data/aadhar/aadharback.jpg', './test/data/aadhar/soham.jpeg', './test/data/aadhar/sohamback2.jpeg']
-	no_of_proc = 4
-	lines = fast.process(image_list, 90, 40, no_of_proc)
+def run(file):
+	mean = np.mean(imageio.imread(file, as_gray=True))
+	# print("Mean rgb", mean) # this wont work because words are black
+	
+	# Have to adjust rgb, max_rgb, inc as needed
+	rgb = 70
+	max_rgb = mean/1.5
+	inc = 10
+	image_list = []
+	while rgb <= max_rgb:
+		image_list.append( { "image": file, "rgb": rgb, "conf": 30} )
+		rgb = rgb + inc
+	print("Running for " + str(len(image_list)) + " different versions of image")
+	no_of_proc = len(image_list) #5
+	lines = fast.process(image_list, no_of_proc)
 	return lines
 
-print(run())
+
+def get_info(lines_list):
+	aadhar_no = ''
+	name = ''
+	sex = ''
+	date_of_birth = ''
+	found_dob = False
+	sex_line_index = len(lines_list)
+	for index in lines_list:
+		line = lines_list[index]
+		
+		# Aadhar Number
+		if len(aadhar_no) != 12:
+			aadhar_no = ''
+			for word in line:
+				word = filter(lambda x: ord(x) == 32 or ord(x) == 35 or (ord(x) >= 48 and ord(x) <= 90) or (ord(x) >= 97 and ord(x) <= 122), word)
+				if word.isdigit() and aadhar_no != word: # handle repeating pincode
+					aadhar_no += word
+		
+		# Date of Birth
+		joined_line = ''.join(str(e) for e in line)
+		found_dob_index = re.search('Birth : |Birth:|Birth|Birth |irth|Year : | Year:|YoB|YOB : |YOB:|DOB:|DOB : | DOB :|DOB', joined_line);
+		if found_dob_index >= 0:
+			date_of_birth = joined_line[found_dob_index.end():]
+			sex_line_index = index + 1
+		
+		# Sex
+		if index == sex_line_index:
+			if ([w for w in line if re.search('(Female|Male|emale|male|ale|FEMALE|MALE|EMALE)$', w)]):
+				joined_line = ''.join(str(e) for e in line)
+			if 'female' in joined_line.lower():
+				sex = 'Female'
+			if 'male' in joined_line.lower():
+				sex = 'Male'
+				
+	return aadhar_no, date_of_birth, sex
+
+
+file = sys.argv[1]
+all_lines = run(file)
+print('Getting aadhar...')
+extracted_data_list = []
+extracted_aadhar_list = []
+extracted_dob_list = []
+extracted_sex_list = []
+for lines in all_lines:
+	aadhar_no, date_of_birth, sex = get_info(lines)
+	# print(aadhar_no, date_of_birth, sex)
+	extracted_aadhar_list.append(aadhar_no)
+	extracted_dob_list.append(date_of_birth)
+	extracted_sex_list.append(sex)
+	extracted_data_list.append( { "aadhar_no": aadhar_no, "dob": date_of_birth, "sex": sex } )
+
+final_data = {
+	"Aadhar No": max(set(extracted_aadhar_list), key = extracted_aadhar_list.count),
+	"DOB": max(set(extracted_dob_list), key = extracted_dob_list.count),
+	"Sex": max(set(extracted_sex_list), key = extracted_sex_list.count)
+}
+print(final_data)
+
+# Writing data into JSON
+with open('result/aadhar.json', 'a') as fp:
+	# json.dump(data, fp)
+	fp.write(str(final_data) + "\n")
 
 
 """
-# Initializing data variable
-name = None
-gender = None
-year = None
-uid = None
-yearline = []
-genline = []
-nameline = []
-text1 = []
-text2 = []
-
-# Searching for Year of Birth
-lines = processed_text
-
-for wordlist in lines.split('\n'):
-    xx = wordlist.split( )
-    if [w for w in xx if re.search('(Year|Birth|irth|YoB|YOB:|DOB:|DOB)$', w)]:
-        yearline = wordlist
-        break
-    else:
-        text1.append(wordlist)
-try:
-    text2 = processed_text.split(yearline,1)[1]
-except:
-    pass
-
-try:
-    yearline = re.split('Birth : |Birth:|Birth|Birth |irth|Year|YoB|YOB:|DOB:|DOB : | DOB :|DOB', yearline)[1:]
-    dob = yearline[-1].strip()
-    # yearline = ''.join(str(e) for e in yearline)
-    # if yearline:
-    #     dob = dparser.parse(yearline, fuzzy=True)
-except:
-    pass
-
-
-# Searching for Gender
-try:
-	for wordlist in lines.split('\n'):
-		xx = wordlist.split( )
-		if ([w for w in xx if re.search('(Female|Male|emale|male|ale|FEMALE|MALE|EMALE)$', w)]):
-			genline = wordlist
-			break
-
-	if 'Female' in genline:
-		gender = "Female"
-	if 'Male' in genline:
-		gender = "Male"
-
-	text2 = processed_text.split(genline,1)[1]
-
-except:
-	pass
-
-# Read Database
+# Read Name Database
 with open('namedb.csv', 'rb') as f:
 	reader = csv.reader(f)
 	newlist = list(reader)
@@ -100,37 +122,6 @@ try:
 	name = ''.join(str(e) for e in nameline)
 except:
 	pass
-
-
-# Searching for Aadhar No
-
-try:
-	newlist = []
-	for xx in text2.split('\n'):
-		newlist.append(xx)
-	newlist = filter(lambda x: len(x)>5, newlist)
-	ma = 0
-	uid = ''.join(str(e) for e in newlist)
-	for no in newlist:
-		if ma<sum(c.isdigit() for c in no):
-			ma = sum(c.isdigit() for c in no)
-			uid = int(filter(str.isdigit, no))
-except:
-	pass
-
-
-# Removing dummy files
-# os.remove('processed.jpg')
-# os.remove('original_text.txt')
-# os.remove('processed_text.txt')
-
-
-# Making tuples of data
-data = {}
-data['Name'] = name
-data['Gender'] = gender
-data['DOB'] = dob
-data['Aadhar'] = uid
 
 
 ############################## BACK ##################################

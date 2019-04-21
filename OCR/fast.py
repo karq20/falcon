@@ -9,7 +9,7 @@ P.S. Running OCR is a CPU bound activity
 import concurrent.futures
 import text_with_confidence
 
-def process(image_list, rgb, conf, no_of_proc):
+def process(image_list, no_of_proc):
     futures = []
     results = []
     if no_of_proc is None:
@@ -17,13 +17,13 @@ def process(image_list, rgb, conf, no_of_proc):
 
     """ Executor Submit - Returns whatever is done, 9 sec """
     executor = concurrent.futures.ProcessPoolExecutor(no_of_proc)
-    for image in image_list:
-    	futures.append(executor.submit(text_with_confidence.do, image, rgb, conf))
+    for image_obj in image_list:
+    	futures.append(executor.submit(text_with_confidence.do, image_obj["image"], image_obj["rgb"], image_obj["conf"]))
 
     for r in concurrent.futures.as_completed(futures):
         results.append(r.result())
 
-    """ Executor Map - Returns in order of input, 19 sec """
+    """ Executor Map - Returns in order of input, 9 sec """
     # executor = concurrent.futures.ProcessPoolExecutor(4)
     # futures = executor.map(runocr, image_list)
     # for r in futures:
